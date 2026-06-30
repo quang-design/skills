@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Swarm"
+  short_description: "Swarm issue dumps into tracked PR lanes"
+  default_prompt: "Use $codex-swarm to turn this issue dump into an approved parallel work plan and managed execution threads."
