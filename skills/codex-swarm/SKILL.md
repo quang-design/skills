@@ -96,7 +96,7 @@ Source artifacts inspected:
 - Stop conditions:
 ```
 
-Ask for approval after the plan. Do not spawn execution threads before approval.
+Ask for approval after the plan. Do not spawn execution threads before approval. When the approval plan names a concrete model for a lane, approval of that plan is explicit user approval to pass that model to the thread-creation tool for that lane. If the lane model is listed as `current/default` or the plan omits a concrete model, omit the model field so the host uses its configured default.
 
 ## Execution State
 
@@ -131,7 +131,7 @@ Update the state when dependency edges, ownership, models, expected outputs, pro
 
 ## Worker Thread Prompt
 
-For each approved lane, send a prompt shaped like this:
+For each approved lane, create the thread with the lane model from the approved execution state when it is concrete and supported by the thread tool. Omit the model field only when the approved lane model is `current/default`, omitted, unsupported by the destination host, or the thread tool explicitly rejects it. Then send a prompt shaped like this:
 
 ```text
 /goal <one-sentence measurable outcome>
@@ -192,7 +192,7 @@ At each monitor pass:
 
 ## Model Routing
 
-Default to the current model unless a lane clearly benefits from a cheaper or stronger model. Use `references/model-routing.md` to pick overrides. Record the reason in the plan and worker prompt.
+Default to the current model unless a lane clearly benefits from a cheaper or stronger model. Use `references/model-routing.md` to pick overrides. Record the concrete model and reason in the approval plan, execution state, and worker prompt. After the user approves the plan, pass the approved concrete model to `create_thread` for that lane when the tool supports it; this avoids silently falling back to the host default after a model-specific plan was approved.
 
 ## Final Output
 
