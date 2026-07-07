@@ -45,6 +45,30 @@ Example prompts:
 /codex-swarm the open issues, collapse small ones, split large ones
 ```
 
+### fewest-degrees-of-freedom
+
+[`fewest-degrees-of-freedom`](./skills/fewest-degrees-of-freedom/SKILL.md) is a human-and-AI workflow for solving a big problem by attacking its most constrained subproblem first.
+
+It ranks every subproblem by how many valid solutions exist, then works through them together, one atomic decision at a time:
+
+- decompose the problem with the human
+- rank subproblems by degrees of freedom (most constrained first)
+- solve one focused subproblem per step — AI proposes, human confirms
+- lock each decision atomically and let it cascade constraints onto the rest
+- build from the smallest constrained piece outward until the whole problem is solved
+
+The big picture emerges from settled atoms, not the other way around. Every lock is a shared decision, so no piece is settled without the human's go.
+
+Use it when a problem feels too big to start, or when you keep asking "where do I even begin?"
+
+Example prompts:
+
+```text
+/fewest-degrees-of-freedom this system design
+/fewest-degrees-of-freedom help me figure out what to solve first
+/fewest-degrees-of-freedom break this down and let's work through it one step at a time
+```
+
 ## Repo structure
 
 ```text
@@ -58,6 +82,8 @@ skills/
       workflow.md
     scripts/
       validate_plan.py
+  fewest-degrees-of-freedom/
+    SKILL.md
 ```
 
 ## Skill structure
