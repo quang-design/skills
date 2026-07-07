@@ -45,6 +45,22 @@ Example prompts:
 /codex-swarm the open issues, collapse small ones, split large ones
 ```
 
+### fewest-degrees-of-freedom
+
+[`fewest-degrees-of-freedom`](./skills/fewest-degrees-of-freedom/SKILL.md) is a problem decomposition framework based on Christopher Alexander's constraint-first solving.
+
+The AI decomposes the problem and ranks subproblems by degrees of freedom, then finds the most constrained subproblem to start with the human and works through them together, one at a time.
+
+Use it when a problem feels too big to start, or when you keep asking "where do I even begin?"
+
+Example prompts:
+
+```text
+/fewest-degrees-of-freedom this system design
+/fewest-degrees-of-freedom help me figure out what to solve first
+/fewest-degrees-of-freedom break this down and let's work through it one step at a time
+```
+
 ## Repo structure
 
 ```text
@@ -58,6 +74,8 @@ skills/
       workflow.md
     scripts/
       validate_plan.py
+  fewest-degrees-of-freedom/
+    SKILL.md
 ```
 
 ## Skill structure
