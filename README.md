@@ -47,17 +47,9 @@ Example prompts:
 
 ### fewest-degrees-of-freedom
 
-[`fewest-degrees-of-freedom`](./skills/fewest-degrees-of-freedom/SKILL.md) is a human-and-AI workflow for solving a big problem by attacking its most constrained subproblem first.
+[`fewest-degrees-of-freedom`](./skills/fewest-degrees-of-freedom/SKILL.md) is a problem decomposition framework based on Christopher Alexander's constraint-first solving.
 
-It ranks every subproblem by how many valid solutions exist, then works through them together, one atomic decision at a time:
-
-- decompose the problem with the human
-- rank subproblems by degrees of freedom (most constrained first)
-- solve one focused subproblem per step — AI proposes, human confirms
-- lock each decision atomically and let it cascade constraints onto the rest
-- build from the smallest constrained piece outward until the whole problem is solved
-
-The big picture emerges from settled atoms, not the other way around. Every lock is a shared decision, so no piece is settled without the human's go.
+The AI decomposes the problem and ranks subproblems by degrees of freedom, then finds the most constrained subproblem to start with the human and works through them together, one at a time.
 
 Use it when a problem feels too big to start, or when you keep asking "where do I even begin?"
 
