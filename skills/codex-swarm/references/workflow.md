@@ -69,7 +69,8 @@ The parent coordinator owns:
 
 - Intake normalization.
 - Approval plan.
-- Thread creation and titles.
+- First-class Codex thread creation in separate worktrees for implementation lanes.
+- Thread titles, thread ids, and worktree tracking.
 - Dependency scheduling.
 - Monitoring and status synthesis.
 - Conflict detection across lanes.
@@ -77,6 +78,7 @@ The parent coordinator owns:
 
 Lane threads own:
 
+- Verifying they are running in their assigned worker worktree, not the coordinator checkout.
 - Repo inspection.
 - Slice shaping.
 - Implementation.

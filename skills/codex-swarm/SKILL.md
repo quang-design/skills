@@ -4,7 +4,7 @@ description: Standalone workflow for turning GitHub issues, issue searches, bug 
 license: MIT
 metadata:
   author: quang-design
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Codex Swarm
@@ -23,8 +23,9 @@ Natural prompts:
 - Keep intake read-only until the human approves the execution plan.
 - Inspect primary artifacts before planning: GitHub issues, PRs, comments, logs, docs, Slack, Sentry, repo files, failing checks, or local notes.
 - Use memory before planning and again when blocked. Prior repo evidence is useful, but verify drift-prone facts live when cheap.
-- Use subagents or Codex threads for bounded subtasks when available.
-- Give every spawned thread a concrete `/goal`, ownership boundary, expected output, proof plan, dependency inputs, model choice, and stop condition.
+- Use first-class Codex threads in separate worktrees for implementation lanes whenever the `create_thread` tool is available. Use subagents only for read-only research, approval-review sidecars, or when first-class thread creation is unavailable.
+- Give every spawned worker thread a concrete `/goal`, ownership boundary, expected output, proof plan, dependency inputs, model choice, and stop condition.
+- The coordinator thread must not implement lane code in its own checkout after approval. Its job is plan/state, thread creation, dependency scheduling, monitoring, conflict handling, and final synthesis.
 - Do not start implementation for product decisions, missing credentials, destructive operations, unclear repo ownership, or ambiguous priority. Put those in the approval plan.
 - Collapse issues when they share files, proofs, risk, or review story.
 - Split issues when they have disjoint ownership, different repos, independent proofs, or dependency outputs that should become separate review units.
@@ -127,11 +128,24 @@ Use this shape:
 }
 ```
 
-Update the state when dependency edges, ownership, models, expected outputs, proofs, branches, PRs, or blockers change.
+Update the state when dependency edges, ownership, models, expected outputs, proofs, branches, PRs, thread ids, worktree paths, or blockers change.
+
+## Thread Creation Policy
+
+For each approved implementation lane:
+
+1. Call `list_projects` if needed to identify the repo project.
+2. Call `create_thread` with `target.type="project"` and `target.environment.type="worktree"` so the host creates a separate first-class Codex thread and worktree for the lane.
+3. Pass the lane model from the approved execution state when it is concrete and supported by the thread tool. Omit the model field only when the approved lane model is `current/default`, omitted, unsupported by the destination host, or the thread tool explicitly rejects it.
+4. Record the returned thread id and worktree/project target in the coordinator worklog before starting the next lane.
+
+Use `spawn_agent` instead of `create_thread` only when the lane is read-only research, approval-review support, or `create_thread` is unavailable. If you must use a subagent for implementation, explicitly tell the user that this will not create a normal sidebar thread/worktree and ask for approval before continuing.
+
+The coordinator must not ask workers to use `/Users/.../repo or your assigned fork/worktree`. The worker prompt must name the actual created thread/worktree target. Ambiguous worker locations cause shared-checkout edits and broken swarm isolation.
 
 ## Worker Thread Prompt
 
-For each approved lane, create the thread with the lane model from the approved execution state when it is concrete and supported by the thread tool. Omit the model field only when the approved lane model is `current/default`, omitted, unsupported by the destination host, or the thread tool explicitly rejects it. Then send a prompt shaped like this:
+After the first-class worker thread/worktree exists, send a prompt shaped like this:
 
 ```text
 /goal <one-sentence measurable outcome>
@@ -142,7 +156,7 @@ Context:
 - Parent objective:
 - Lane ID:
 - Source artifacts:
-- Repo/worktree:
+- Repo/worktree: <exact project/worktree target created for this lane; do not use the coordinator checkout>
 - Ownership boundary:
 - Dependencies satisfied:
 - Items in scope:
@@ -152,7 +166,7 @@ Context:
 - Model routing reason:
 
 Workflow:
-1. Inspect live repo state, local instructions, branch/worktree, and unrelated changes.
+1. Inspect live repo state, local instructions, the assigned branch/worktree, and unrelated changes. Stop and report immediately if you are in the coordinator checkout instead of your assigned worker worktree.
 2. Restate the lane's requirement, boundaries, risks, and proof plan.
 3. Implement the smallest coherent change for this lane.
 4. Verify locally with focused proofs and relevant repo gates.
@@ -173,6 +187,7 @@ Plan JSON:
 Lane states:
 Dependencies:
 Threads:
+Worktrees:
 Branches:
 PRs:
 Proofs:
@@ -182,7 +197,7 @@ Next monitor time:
 
 At each monitor pass:
 
-1. Read thread status and latest outputs.
+1. Read thread status and latest outputs from the worker thread ids recorded in the worklog.
 2. Update lane state: `planned`, `running`, `blocked`, `needs-review`, `pr-open`, `closed`, or `failed`.
 3. If a lane closes, start dependent lanes with the closed lane's concrete outputs.
 4. If a lane discovers scope drift, pause implementation and update the approval plan before continuing.
